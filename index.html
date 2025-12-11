@@ -455,7 +455,7 @@
             const bear = calcStreak(candles, "bear", rule);
             const streak = pickStreak(bull, bear);
 
-            const match = streak.count >= threshold && ((streak.dir === "bull" && funding < 0) || (streak.dir === "bear" && funding > 0));
+            const match = streak.count >= threshold && ((streak.dir === "bull" && funding < 0) || (streak.dir === "bear" && funding > 0.005));
 
             const rowClass =
               match && streak.dir === "bull"
