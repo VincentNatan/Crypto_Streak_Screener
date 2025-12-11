@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Crypto Streak Screener (Bybit)</title>
+    <title>Streak Screener (Bybit)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -99,6 +99,7 @@
         height: 8px;
         border-radius: 50%;
         background: #22c55e;
+        display: inline-block;
       }
       .dot.loading {
         background: #facc15;
@@ -187,7 +188,7 @@
 
   <body>
     <div class="wrapper">
-      <h1>Crypto Streak Screener (Bybit)</h1>
+      <h1>Streak Screener (Bybit)</h1>
       <div class="subtitle">
         Shows only <b>one streak</b> and <b>one gain</b> (bull OR bear). Row
         color reveals streak direction.
@@ -197,7 +198,7 @@
       <div class="controls">
         <div class="control-group" style="flex: 1 1 260px">
           <label>Symbols</label>
-          <input id="symbolsInput" value="BTCUSDT, ETHUSDT, SOLUSDT" />
+          <input id="symbolsInput" value="BTCUSDT, ETHUSDT, SOLUSDT, DOGEUSDT" />
         </div>
 
         <div class="control-group">
@@ -211,16 +212,16 @@
         <div class="control-group">
           <label>Interval</label>
           <select id="intervalSelect">
-            <option value="1">1m</option>
+            <option value="1" selected>1m</option>
             <option value="3">3m</option>
-            <option value="5" selected>5m</option>
+            <option value="5">5m</option>
             <option value="15">15m</option>
           </select>
         </div>
 
         <div class="control-group threshold">
           <label>Streak Threshold</label>
-          <input id="thresholdInput" type="number" value="3" min="1" />
+          <input id="thresholdInput" type="number" value="3" min="1" max="14"/>
         </div>
 
         <div class="control-group">
@@ -260,6 +261,7 @@
             <th>Streak</th>   
             <th>Funding</th>
             <th>Next Funding</th>
+            <th>RSI</th>
             <th>OHLC</th>
             <th>Match?</th>
           </tr>
@@ -271,7 +273,7 @@
     <script>
       const API_KLINE = "https://api.bybit.com/v5/market/kline";
       const API_TICKER = "https://api.bybit.com/v5/market/tickers";
-      const MAX_BARS = 15;
+      const MAX_BARS = 22;
 
       let autoTimer = null;
       let countdown = 10;
@@ -357,6 +359,46 @@
 
         return { count, gain };
       }
+      function computeRSI(candles, length = 14) {
+        // Need at least length + 1 candles
+        if (candles.length < length + 1) return null;
+
+        let gains = 0;
+        let losses = 0;
+
+        // Calculate average gain/loss over the first period
+        for (let i = 0; i < length; i++) {
+          const closeNow = parseFloat(candles[i][4]);
+          const closePrev = parseFloat(candles[i+1][4]);
+          const diff = closeNow - closePrev;
+        
+          if (diff > 0) gains += diff;
+          else losses -= diff; // diff is negative
+        }
+      
+        let avgGain = gains / length;
+        let avgLoss = losses / length;
+      
+        // Wilder smoothing — continue with remaining candles
+        for (let i = length; i < candles.length - 1; i++) {
+          const closeNow = parseFloat(candles[i][4]);
+          const closePrev = parseFloat(candles[i+1][4]);
+          const diff = closeNow - closePrev;
+        
+          let gain = diff > 0 ? diff : 0;
+          let loss = diff < 0 ? -diff : 0;
+        
+          avgGain = (avgGain * (length - 1) + gain) / length;
+          avgLoss = (avgLoss * (length - 1) + loss) / length;
+        }
+      
+        if (avgLoss === 0) return 100; // cannot divide by zero → RSI max
+      
+        const rs = avgGain / avgLoss;
+        const rsiVal = 100 - 100 / (1 + rs);
+      
+        return rsiVal;
+      }
 
       function pickStreak(bull, bear) {
         if (bull.count > 0 && bear.count === 0) return { dir: "bull", ...bull };
@@ -397,8 +439,11 @@
               H = last[2],
               L = last[3],
               C = last[4];
+
             const funding = parseFloat(ticker.fundingRate) * 100
             const fundingCountdown = msToCountdown(ticker.nextFundingTime - Date.now());
+
+            const rsi = computeRSI(candles);
 
             const bull = calcStreak(candles, "bull", rule);
             const bear = calcStreak(candles, "bear", rule);
@@ -421,6 +466,7 @@
               streakCount: streak.count,
               streakDir: streak.dir,
               streakGain: streak.gain,
+              rsi,
               O,
               H,
               L,
@@ -465,6 +511,8 @@
 
             const fundingClass = r.funding >= 0 ? "gain-bull" : "gain-bear";
 
+            const rsiClass = r.rsi >= 70 ? "gain-bear" : r.rsi <= 30 ? "gain-bull" : "gain-neutral";
+
             return `
             <tr class="${r.rowClass}">
               <td class="symbol">${r.sym}</td>
@@ -474,7 +522,8 @@
             }</td>             
               <td class="${streakClass}">${r.streakCount}</td>
               <td class="${fundingClass}">${fmt(r.funding, 4)}%</td>
-              <td class = "streak-neutral">${r.fundingCountdown}</td>
+              <td class="streak-neutral">${r.fundingCountdown}</td>
+              <td class="${rsiClass}"> ${fmt(r.rsi, 2)}</td>
               <td class="small-text">O:${fmt(r.O)} H:${fmt(r.H)} L:${fmt(
               r.L
             )} C:${fmt(r.C)}</td>
