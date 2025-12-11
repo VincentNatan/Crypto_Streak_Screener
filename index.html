@@ -43,7 +43,7 @@
         padding: 12px;
         border-radius: 12px;
         border: 1px solid #1f2937;
-        margin-bottom: 16px;
+        margin-bottom: 10px;
       }
       .control-group {
         display: flex;
@@ -86,7 +86,48 @@
       .btn:active {
         transform: scale(0.96);
         box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
-      } /* Status */
+      }
+      /* table control */
+      .tableControls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 0px 8px 24px;
+        border-bottom: 1px solid #374151;
+        margin-bottom: 16px;
+        background-color: transparent;
+      }
+
+      .tableControls-group {
+        display: flex;
+      }
+
+      .tableControls-btn {
+        border-radius: 10px; /* pill shape */
+        font-size: 12px;
+        color: #b5b5b6;
+        background: radial-gradient(circle at top left, #111827, #020617);
+        border: 1px solid #4d5a70;
+        padding: 5px 10px;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+
+      .tableControls-btn:hover {
+        background-color: #374151;
+        color: #fff;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+
+      .tableControls-btn:focus {
+        outline: none;
+        color: #fff;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+      }
+
+      /* Status */
       .status-row {
         display: flex;
         justify-content: space-between;
@@ -253,6 +294,16 @@
         </div>
       </div>
 
+      <!-- tableControl -->
+      <div class="tableControls">
+        <div class="tableControls-group ">
+          <button onclick="fetchGainers()" class="tableControls-btn">Top Gainer</button>
+        </div>
+        <div class="tableControls-group ">
+          <button onclick="fetchBigCaps()" class="tableControls-btn">Big Caps</button>
+        </div>
+      </div>
+
       <div class="status-row">
         <span
           ><span id="statusDot" class="dot"></span>
@@ -312,6 +363,30 @@
         const x = parseFloat(n);
         return isNaN(x) ? "-" : x.toFixed(d);
       }
+
+      async function fetchGainers() {
+        const url = "https://api.bybit.com/v5/market/tickers?category=linear";
+        const res = await fetch(url);
+        const json = await res.json();
+
+        if (!json.result || !json.result.list) {
+            alert("Failed to fetch data");
+            return;
+        }
+        
+        let data = json.result.list;
+        
+        // Sort by 24h percentage gain descending
+        data.sort((a, b) => parseFloat(b.price24hPcnt) - parseFloat(a.price24hPcnt));    
+        // Take top 10 symbols
+        const top10Symbols = data.slice(0, 10).map(item => item.symbol);     
+        // Fill input value with comma-separated symbols
+        document.getElementById("symbolsInput").value = top10Symbols.join(", ");
+      }
+      
+      async function fetchBigCaps() {
+        document.getElementById("symbolsInput").value ="BTCUSDT, ETHUSDT, SOLUSDT, DOGEUSDT"
+      } 
 
       function msToCountdown(ms) {
         const totalSeconds = Math.floor(ms / 1000);
