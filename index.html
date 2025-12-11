@@ -201,7 +201,7 @@
       <div class="controls">
         <div class="control-group" style="flex: 1 1 260px">
           <label>Symbols</label>
-          <input id="symbolsInput" value="BTCUSDT, ETHUSDT, SOLUSDT, DOGEUSDT" />
+          <input id="symbolsInput" value="BTCUSDT, ETHUSDT, SOLUSDT, DOGEUSDT" name="symbolsInput"/>
         </div>
 
         <div class="control-group">
@@ -457,10 +457,12 @@
 
             const match = streak.count >= threshold && ((streak.dir === "bull" && funding < 0) || (streak.dir === "bear" && funding > 0.005));
 
+            const passTreshold = streak.count >= threshold;
+
             const rowClass =
-              match && streak.dir === "bull"
+              passTreshold && streak.dir === "bull"
                 ? "row-bull"
-                : match && streak.dir === "bear"
+                : passTreshold && streak.dir === "bear"
                 ? "row-bear"
                 : "row-neutral";
 
@@ -478,6 +480,7 @@
               L,
               C,
               match,
+              passTreshold,
               rowClass,
             });
           } catch (e) {
@@ -502,7 +505,7 @@
               return `<tr class="row-neutral"><td>${r.sym}</td><td colspan="6" class="negative">${r.error}</td></tr>`;
             }
 
-            const streakClass = r.match
+            const streakClass = r.passTreshold
               ? r.streakDir === "bull"
                 ? "streak-bull"
                 : "streak-bear"
