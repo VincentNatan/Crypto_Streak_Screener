@@ -297,10 +297,13 @@
       <!-- tableControl -->
       <div class="tableControls">
         <div class="tableControls-group ">
-          <button onclick="fetchGainers()" class="tableControls-btn">Top Gainer</button>
+          <button onclick="fetchTop10Symbols('Gainers')" class="tableControls-btn">Gainer</button>
         </div>
         <div class="tableControls-group ">
-          <button onclick="fetchBigCaps()" class="tableControls-btn">Big Caps</button>
+          <button onclick="fetchTop10Symbols('Losers')" class="tableControls-btn">Losers</button>
+        </div>
+        <div class="tableControls-group ">
+          <button onclick="fetchTop10Symbols('Volume')" class="tableControls-btn">Volume</button>
         </div>
       </div>
 
@@ -364,29 +367,28 @@
         return isNaN(x) ? "-" : x.toFixed(d);
       }
 
-      async function fetchGainers() {
-        const url = "https://api.bybit.com/v5/market/tickers?category=linear";
-        const res = await fetch(url);
-        const json = await res.json();
-
-        if (!json.result || !json.result.list) {
-            alert("Failed to fetch data");
-            return;
+      async function fetchTop10Symbols(rule){
+        const r = await fetch(`${API_TICKER}?category=linear`).then((r) => r.json());
+        if (r.retCode !== 0) {
+          alert("Failed to fetch data");
+          return;
         }
-        
-        let data = json.result.list;
-        
-        // Sort by 24h percentage gain descending
-        data.sort((a, b) => parseFloat(b.price24hPcnt) - parseFloat(a.price24hPcnt));    
-        // Take top 10 symbols
-        const top10Symbols = data.slice(0, 10).map(item => item.symbol);     
-        // Fill input value with comma-separated symbols
+
+        let listData = r.result.list;
+
+        if (rule === "Gainers") {
+            listData.sort((a, b) => parseFloat(b.price24hPcnt) - parseFloat(a.price24hPcnt));
+        } else if (rule === "Losers") {
+            listData.sort((a, b) => parseFloat(a.price24hPcnt) - parseFloat(b.price24hPcnt));
+        } else if (rule === "Volume") {
+            listData.sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h));
+        }
+
+
+        const top10Symbols = listData.slice(0, 10).map(item => item.symbol);
         document.getElementById("symbolsInput").value = top10Symbols.join(", ");
+        updateScreener()
       }
-      
-      async function fetchBigCaps() {
-        document.getElementById("symbolsInput").value ="BTCUSDT, ETHUSDT, SOLUSDT, DOGEUSDT"
-      } 
 
       function msToCountdown(ms) {
         const totalSeconds = Math.floor(ms / 1000);
