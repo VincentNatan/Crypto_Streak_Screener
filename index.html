@@ -87,44 +87,36 @@
         transform: scale(0.96);
         box-shadow: 0 0 0 rgba(0, 0, 0, 0.3);
       }
-      /* table control */
-      .tableControls {
+      /* Quick Action */
+      .quick-actions {
         display: flex;
+        gap: 10px;
+        margin-bottom: 18px;
         flex-wrap: wrap;
-        gap: 12px;
-        padding: 0px 8px 24px;
-        border-bottom: 1px solid #374151;
-        margin-bottom: 16px;
-        background-color: transparent;
       }
-
-      .tableControls-group {
-        display: flex;
-      }
-
-      .tableControls-btn {
-        border-radius: 10px; /* pill shape */
-        font-size: 12px;
-        color: #b5b5b6;
-        background: radial-gradient(circle at top left, #111827, #020617);
-        border: 1px solid #4d5a70;
-        padding: 5px 10px;
+      .quick-btn {
+        padding: 8px 14px;
+        border-radius: 25px;
+        background: #0b1120;
+        border: 1px solid #1f2937;
+        color: #e5e7eb;
+        font-size: 13px;
         cursor: pointer;
-        transition: all 0.2s ease-in-out;
+        transition: all 0.15s ease;
+        white-space: nowrap;
       }
-
-      .tableControls-btn:hover {
-        background-color: #374151;
-        color: #fff;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      }
-
-      .tableControls-btn:focus {
-        outline: none;
-        color: #fff;
+      .quick-btn:hover {
+        background: #111827;
         border-color: #2563eb;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.4);
+        color: #93c5fd;
+      }
+      .quick-btn:active {
+        transform: scale(0.96);
+      }
+      .quick-btn:focus {
+        background: rgba(37, 99, 235, 0.15);
+        border-color: #2563eb;
+        color: #bfdbfe;
       }
 
       /* Status */
@@ -213,7 +205,7 @@
         color: #ef4444;
       }
       .gain-warn {
-        color: #fcd247;
+        color: #f8d560;
       }
       .gain-neutral {
         color: #9ca3af;
@@ -294,17 +286,11 @@
         </div>
       </div>
 
-      <!-- tableControl -->
-      <div class="tableControls">
-        <div class="tableControls-group ">
-          <button onclick="fetchTop10Symbols('Gainers')" class="tableControls-btn">Gainer</button>
-        </div>
-        <div class="tableControls-group ">
-          <button onclick="fetchTop10Symbols('Losers')" class="tableControls-btn">Losers</button>
-        </div>
-        <div class="tableControls-group ">
-          <button onclick="fetchTop10Symbols('Volume')" class="tableControls-btn">Volume</button>
-        </div>
+      <!-- Quick Action -->
+      <div class="quick-actions">
+          <button onclick="fetchTop10Symbols('Gainers')" class="quick-btn">Gainer</button>
+          <button onclick="fetchTop10Symbols('Losers')" class="quick-btn">Losers</button>
+          <button onclick="fetchTop10Symbols('Volume')" class="quick-btn">Volume</button>
       </div>
 
       <div class="status-row">
@@ -331,6 +317,7 @@
               <th>Funding</th>
               <th>Next Funding</th>
               <th>RSI</th>
+              <th>Vol Spike</th>
               <th>OHLC</th>
               <th>Match?</th>
             </tr>
@@ -495,6 +482,18 @@
         return rsiVal;
       }
 
+      function countVolumeSpikes(candles,lookback=8){
+        const currentVolume = parseFloat(candles[0][5]);
+
+        let sumVolume = 0;
+        for (let i = 1; i <= lookback; i++) {
+          sumVolume += parseFloat(candles[i][5]);
+        }
+        const avgVolume = sumVolume / lookback;
+        const volumeSpikeRatio = currentVolume / avgVolume;
+        return volumeSpikeRatio;
+      }
+
       function pickStreak(bull, bear) {
         if (bull.count > 0 && bear.count === 0) return { dir: "bull", ...bull };
         if (bear.count > 0 && bull.count === 0) return { dir: "bear", ...bear };
@@ -541,6 +540,7 @@
             );
 
             const rsi = computeRSI(candles);
+            const volumeSpike = countVolumeSpikes(candles);
 
             const bull = calcStreak(candles, "bull", rule);
             const bear = calcStreak(candles, "bear", rule);
@@ -569,6 +569,7 @@
               streakDir: streak.dir,
               streakGain: streak.gain,
               rsi,
+              volumeSpike,
               O,
               H,
               L,
@@ -614,8 +615,9 @@
 
             const fundingClass = r.funding >= 0 ? "gain-bull" : "gain-bear";
 
-            const rsiClass =
-              r.rsi >= 70 || r.rsi <= 30 ? "gain-warn" : "gain-neutral";
+            const rsiClass = r.rsi >= 70 || r.rsi <= 30 ? "gain-warn" : "gain-neutral";
+
+            const volumeSpikeClass = r.volumeSpike >= 2 ? "gain-warn" : "gain-neutral";
 
             return `
             <tr class="${r.rowClass}">
@@ -628,6 +630,7 @@
               <td class="${fundingClass}">${fmt(r.funding, 4)}%</td>
               <td class="streak-neutral">${r.fundingCountdown}</td>
               <td class="${rsiClass}"> ${fmt(r.rsi, 2)}</td>
+              <td class="${volumeSpikeClass}"> ${fmt(r.volumeSpike, 2)}</td>
               <td class="small-text">O:${fmt(r.O)} H:${fmt(r.H)} L:${fmt(
               r.L
             )} C:${fmt(r.C)}</td>
