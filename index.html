@@ -291,6 +291,7 @@
           <button onclick="fetchTop10Symbols('Gainers')" class="quick-btn">Gainer</button>
           <button onclick="fetchTop10Symbols('Losers')" class="quick-btn">Losers</button>
           <button onclick="fetchTop10Symbols('Volume')" class="quick-btn">Volume</button>
+          <button onclick="fetchTop10Symbols('turnOver')" class="quick-btn">Volume</button>
           <button onclick="fetchTop10Symbols('negative-funding')" class="quick-btn">Negative Funding</button>
           <button onclick="fetchTop10Symbols('positive-funding')" class="quick-btn">Positive Funding</button>
       </div>
@@ -370,6 +371,8 @@
         } else if (rule === "Losers") {
             listData.sort((a, b) => parseFloat(a.price24hPcnt) - parseFloat(b.price24hPcnt));
         } else if (rule === "Volume") {
+            listData.sort((a, b) => parseFloat(b.volume24h) - parseFloat(a.volume24h));
+        } else if (rule === "turnOver") {
             listData.sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h));
         }else if (rule === "negative-funding") {
             listData.sort((a, b) => parseFloat(a.fundingRate) - parseFloat(b.fundingRate));
