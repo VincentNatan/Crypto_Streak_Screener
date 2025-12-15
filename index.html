@@ -526,14 +526,14 @@
       }
 
 
-      function countVolumeSpikes(candles,lookback=8){
+      function countVolumeSpikes(candles,length = 8){
         const currentVolume = parseFloat(candles[0][5]);
 
         let sumVolume = 0;
-        for (let i = 1; i <= lookback; i++) {
+        for (let i = 1; i <= length; i++) {
           sumVolume += parseFloat(candles[i][5]);
         }
-        const avgVolume = sumVolume / lookback;
+        const avgVolume = sumVolume / length;
         const volumeSpikeRatio = currentVolume / avgVolume;
         return volumeSpikeRatio;
       }
@@ -678,9 +678,7 @@
               <td class="${rsiClass}"> ${fmt(r.rsi, 2)}</td>
               <td class="${volumeSpikeClass}"> ${fmt(r.volumeSpike, 2)}</td>
               <td class="streak-neutral"> ${fmt(r.atr, 2) + "%"}</td>
-              <td class="small-text">O:${fmt(r.O)} H:${fmt(r.H)} L:${fmt(
-              r.L
-            )} C:${fmt(r.C)}</td>
+              <td class="small-text">O:${fmt(r.O)} H:${fmt(r.H)} L:${fmt(r.L)} C:${fmt(r.C)}</td>
               <td><span class="badge ${r.match ? "yes" : "no"}">${
               r.match ? "YES" : "NO"
             }</span></td>
