@@ -321,7 +321,8 @@
               <th>Funding</th>
               <th>Next Funding</th>
               <th>RSI</th>
-              <th>Vol Spike</th>
+              <th>Vol</th>
+              <th>ATR</th>
               <th>OHLC</th>
               <th>Match?</th>
             </tr>
@@ -492,6 +493,39 @@
         return rsiVal;
       }
 
+      function calculateATR(candles, length = 14) {
+        if (!candles || candles.length < length + 1) return null;
+
+        let trSum = 0;
+
+        // We need `length` true ranges
+        for (let i = 0; i < length; i++) {
+          const curr = candles[i];
+          const prev = candles[i + 1];
+        
+          const high = parseFloat(curr[2]);
+          const low = parseFloat(curr[3]);
+          const prevClose = parseFloat(prev[4]);
+        
+          const tr = Math.max(
+            high - low,
+            Math.abs(high - prevClose),
+            Math.abs(low - prevClose)
+          );
+        
+          trSum += tr;
+        }
+      
+        return trSum / length;
+      }
+
+      function calculateATRPercent(candles, length = 14) {
+        const atr = calculateATR(candles, length);
+        const close = parseFloat(candles[0][4]);
+        return (atr / close) * 100;
+      }
+
+
       function countVolumeSpikes(candles,lookback=8){
         const currentVolume = parseFloat(candles[0][5]);
 
@@ -551,6 +585,7 @@
 
             const rsi = computeRSI(candles);
             const volumeSpike = countVolumeSpikes(candles);
+            const atr = calculateATRPercent(candles);
 
             const bull = calcStreak(candles, "bull", rule);
             const bear = calcStreak(candles, "bear", rule);
@@ -579,6 +614,7 @@
               streakDir: streak.dir,
               streakGain: streak.gain,
               rsi,
+              atr,
               volumeSpike,
               O,
               H,
@@ -641,6 +677,7 @@
               <td class="streak-neutral">${r.fundingCountdown}</td>
               <td class="${rsiClass}"> ${fmt(r.rsi, 2)}</td>
               <td class="${volumeSpikeClass}"> ${fmt(r.volumeSpike, 2)}</td>
+              <td class="streak-neutral"> ${fmt(r.atr, 2) + "%"}</td>
               <td class="small-text">O:${fmt(r.O)} H:${fmt(r.H)} L:${fmt(
               r.L
             )} C:${fmt(r.C)}</td>
