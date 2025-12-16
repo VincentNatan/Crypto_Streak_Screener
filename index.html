@@ -167,10 +167,6 @@
         padding: 8px 10px;
         white-space: nowrap;
       }
-      td.symbol {
-        font-weight: 600;
-        font-size: 13px;
-      }
       td.small-text {
         font-size: 11px;
         color: #9ca3af;
@@ -665,6 +661,8 @@
 
             const volumeSpikeClass = r.volumeSpike >= 2 ? "" : "gain-neutral";
 
+            const atrClass = r.atr > 1.5 ? "" : "gain-neutral";
+
             return `
             <tr class="${r.rowClass}">
               <td class="symbol">${r.sym}</td>
@@ -677,7 +675,7 @@
               <td class="streak-neutral">${r.fundingCountdown}</td>
               <td class="${rsiClass}"> ${fmt(r.rsi, 2)}</td>
               <td class="${volumeSpikeClass}"> ${fmt(r.volumeSpike, 2)}</td>
-              <td class="streak-neutral"> ${fmt(r.atr, 2) + "%"}</td>
+              <td class="${atrClass}"> ${fmt(r.atr, 2) + "%"}</td>
               <td class="small-text">O:${fmt(r.O)} H:${fmt(r.H)} L:${fmt(r.L)} C:${fmt(r.C)}</td>
               <td><span class="badge ${r.match ? "yes" : "no"}">${
               r.match ? "YES" : "NO"
