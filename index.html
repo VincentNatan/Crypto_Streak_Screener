@@ -366,17 +366,17 @@
         let listData = await fetchTickerAll();
 
         if (rule === "Gainers") {
-            listData.sort((a, b) => parseFloat(b.price24hPcnt) - parseFloat(a.price24hPcnt));
+            listData.sort((a, b) => Number(b.price24hPcnt) - Number(a.price24hPcnt));
         } else if (rule === "Losers") {
-            listData.sort((a, b) => parseFloat(a.price24hPcnt) - parseFloat(b.price24hPcnt));
+            listData.sort((a, b) => Number(a.price24hPcnt) - Number(b.price24hPcnt));
         } else if (rule === "Volume") {
-            listData.sort((a, b) => parseFloat(b.volume24h) - parseFloat(a.volume24h));
+            listData.sort((a, b) => Number(b.volume24h) - Number(a.volume24h));
         } else if (rule === "turnOver") {
-            listData.sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h));
+            listData.sort((a, b) => Number(b.turnover24h) - Number(a.turnover24h));
         }else if (rule === "negative-funding") {
-            listData.sort((a, b) => parseFloat(a.fundingRate) - parseFloat(b.fundingRate));
+            listData.sort((a, b) => Number(a.fundingRate) - Number(b.fundingRate));
         }else if (rule === "positive-funding") {
-            listData.sort((a, b) => parseFloat(b.fundingRate) - parseFloat(a.fundingRate));
+            listData.sort((a, b) => Number(b.fundingRate) - Number(a.fundingRate));
         }
 
 
