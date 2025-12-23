@@ -387,13 +387,20 @@
 
       function msToCountdown(ms) {
         const totalSeconds = Math.floor(ms / 1000);
-        const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
-        const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(
-          2,
-          "0"
-        );
-        const seconds = String(totalSeconds % 60).padStart(2, "0");
-        return `${hours} : ${minutes} : ${seconds}`;
+
+        const hoursNum = Math.floor(totalSeconds / 3600);
+        const minutesNum = Math.floor((totalSeconds % 3600) / 60);
+        const secondsNum = totalSeconds % 60;
+
+        const hours = String(hoursNum).padStart(2, "0");
+        const minutes = String(minutesNum).padStart(2, "0");
+        const seconds = String(secondsNum).padStart(2, "0");
+
+        return {
+          text: `${hours} : ${minutes} : ${seconds}`,
+          hours: hoursNum,
+          minutes: minutesNum,
+        };
       }
 
       async function fetchFunding(symbol) {
@@ -606,7 +613,9 @@
               sym,
               price: C,
               funding,
-              fundingCountdown,
+              fundingCountdown: fundingCountdown.text,
+              fundingHours: fundingCountdown.hours,
+              fundingMinutes: fundingCountdown.minutes,
               streakCount: streak.count,
               streakDir: streak.dir,
               streakGain: streak.gain,
@@ -658,6 +667,8 @@
 
             const fundingClass = r.funding >= 0 ? "gain-bull" : "gain-bear";
 
+            const fundingCountdownClass = r.fundingHours === 0 && r.fundingMinutes <= 5 ? "" : "streak-neutral";
+
             const rsiClass = r.rsi >= 70 || r.rsi <= 30 ? "gain-warn" : "gain-neutral";
 
             const volumeSpikeClass = r.volumeSpike >= 2 ? "" : "gain-neutral";
@@ -673,7 +684,7 @@
             }</td>             
               <td class="${streakClass}">${r.streakCount}</td>
               <td class="${fundingClass}">${fmt(r.funding, 4)}%</td>
-              <td class="streak-neutral">${r.fundingCountdown}</td>
+              <td class="${fundingCountdownClass}">${r.fundingCountdown}</td>
               <td class="${rsiClass}"> ${fmt(r.rsi, 2)}</td>
               <td class="${volumeSpikeClass}"> ${fmt(r.volumeSpike, 2)}</td>
               <td class="${atrClass}"> ${fmt(r.atr, 2) + "%"}</td>
