@@ -247,6 +247,7 @@
           <select id="ruleSelect">
             <option value="weak" selected>Weak</option>
             <option value="strong">Strong</option>
+            <option value="engulfing">Engulfing</option>
           </select>
         </div>
 
@@ -285,12 +286,12 @@
 
       <!-- Quick Action -->
       <div class="quick-actions">
-          <button onclick="fetchTop10Symbols('Gainers')" class="quick-btn">Gainer</button>
-          <button onclick="fetchTop10Symbols('Losers')" class="quick-btn">Losers</button>
-          <button onclick="fetchTop10Symbols('Volume')" class="quick-btn">Volume</button>
-          <button onclick="fetchTop10Symbols('turnOver')" class="quick-btn">Turn Over</button>
-          <button onclick="fetchTop10Symbols('negative-funding')" class="quick-btn">Negative Funding</button>
-          <button onclick="fetchTop10Symbols('positive-funding')" class="quick-btn">Positive Funding</button>
+          <button onclick="fetchTopSymbols('Gainers')" class="quick-btn">Gainer</button>
+          <button onclick="fetchTopSymbols('Losers')" class="quick-btn">Losers</button>
+          <button onclick="fetchTopSymbols('Volume')" class="quick-btn">Volume</button>
+          <button onclick="fetchTopSymbols('turnOver')" class="quick-btn">Turn Over</button>
+          <button onclick="fetchTopSymbols('negative-funding')" class="quick-btn">Negative Funding</button>
+          <button onclick="fetchTopSymbols('positive-funding')" class="quick-btn">Positive Funding</button>
       </div>
 
       <div class="status-row">
@@ -361,7 +362,7 @@
         return r.result.list
       }
 
-      async function fetchTop10Symbols(rule, limit=15) {
+      async function fetchTopSymbols(rule, limit=15) {
 
         let listData = await fetchTickerAll();
 
@@ -441,7 +442,10 @@
 
           let condition;
 
-          if (rule === "strong") {
+          if (rule === "engulfing"){
+            // engulfing rule: candle engulfing
+            condition = type === "bull" ? (prevRed && curGreen && (close > prevOpen)) : (prevGreen && curRed && (close < prevOpen ));
+          } else if (rule === "strong") {
             // strong rule: close > prev close
             condition = type === "bull" ? (prevGreen && curGreen) : (prevRed && curRed);
           } else {
